@@ -1,5 +1,5 @@
-figure 1;
-hold on;
+%figure 1;
+%hold on;
 %Configuracao do grafico
 d = 50;
 axis([0-d 4680+d 0-d 3200+d], "equal");
