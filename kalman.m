@@ -16,8 +16,8 @@ sigx = 5;
 sigy = 5;
 sigth = 3*pi/180;
 R = diag([sigx^2 sigy^2 sigth^2]);
-sigld = 0.5;
-siglth = 0.1*pi/180;
+sigld = 10;
+siglth = 0.2*pi/180;
 Q1 = diag([sigld^2 siglth^2]);
 diam = 165;
 %variables
@@ -48,27 +48,27 @@ http_put(g1, update);
 Vels = data{2}.vel2;
 
 figure(1)
-hold on;
+clf; hold on;
 drawMap;
 plot(Pose.x, Pose.y, 'o');
 
 figure(2)
-hold on;
+clf; hold on;
 figure(3)
-hold on;
+clf; hold on;
 figure(4)
-hold on;
+clf; hold on;
 iter = 0;
 
 while 1
-  iter = iter + 1;
+  iter = iter + 1
   % Prediction step
-  [ds dth] = calcDeltas(Vels, dt, diam);
+  [ds dth] = calcDeltas(Vels, dt, diam)
   thm = Pose.th + dth/2;
-  G = calcG(ds, thm);
-  V = calcV(ds, thm, diam);
-  Sigd = calcSigd(Vels, dt);
-  Sigb = G * Sig * G' + V * Sigd * V' + R;
+  G = calcG(ds, thm)
+  V = calcV(ds, thm, diam)
+  Sigd = calcSigd(Vels, dt)
+  Sigb = G * Sig * G' + V * Sigd * V' + R
   %End of prediction step
   
   sleep(dt);

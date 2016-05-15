@@ -5,7 +5,7 @@ function matchArr = featureMatch(detected, features, pose)
   
   d1 = w2r(detected, pose);
   f1 = w2r(features, pose);
-  dif = rem(f1 .- d1, pi);
+  dif = angleNormalize(f1 .- d1, pi);
   %pseudo rectangle matching
   matchArr = (abs(dif(1, :)) < dr) .* (abs(dif(2, :)) < dth);
   %pseudo ellipsis matching
