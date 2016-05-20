@@ -16,7 +16,12 @@ function [valid corr] = correspondingFeatures(features, result, pose)
   end
   
   if(sum(detectedFeatures > 0) > 0)
-    corr = features(detectedFeatures, :);
+    try
+      corr = features(detectedFeatures(detectedFeatures > 0), :);
+    catch
+      detectedFeatures
+      error('line20');
+    end
   else
     corr = []
   end

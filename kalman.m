@@ -38,12 +38,11 @@ data = http_get(g1);
 Pose = data{1}.pose;
 Pose.th = mod(Pose.th*pi/180,2*pi);
 %err = 10;
-%PoseR = [Pose.x]; Pose.y]; Pose.th];
-PoseR = [2350 1610 0];
-%PoseR = [2000 1500 2];
+%PoseR = [Pose.x; Pose.y; Pose.th]
+PoseR = [2340 1600 0];
 update{1}.pose.x = PoseR(1);
 update{1}.pose.y = PoseR(2);
-update{1}.pose.th = PoseR(3);
+update{1}.pose.th = PoseR(3)*180/pi;
 http_put(g1, update);
 Vels = data{2}.vel2;
 
@@ -65,10 +64,10 @@ while 1
   % Prediction step
   [ds dth] = calcDeltas(Vels, dt, diam)
   thm = Pose.th + dth/2;
-  G = calcG(ds, thm)
-  V = calcV(ds, thm, diam)
-  Sigd = calcSigd(Vels, dt)
-  Sigb = G * Sig * G' + V * Sigd * V' + R
+  G = calcG(ds, thm);
+  V = calcV(ds, thm, diam);
+  Sigd = calcSigd(Vels, dt);
+  Sigb = G * Sig * G' + V * Sigd * V' + R;
   %End of prediction step
   
   sleep(dt);
@@ -96,7 +95,7 @@ while 1
     Q = calcQ(Q1, numFeatures);
     K = Sigb * H' * inv(H * Sigb * H' + Q);
     PrevPose = PoseR;
-    PoseR = PoseR + K * Inova
+    PoseR = PoseR + K * Inova;
     
     plot(PoseR(1), PoseR(2), 'o');
     figure(2);
@@ -109,7 +108,7 @@ while 1
     update{1}.pose.x = PoseR(1);
     update{1}.pose.y = PoseR(2);
     update{1}.pose.th = PoseR(3)*180/pi;
-    http_put(g1, update);
+    http_post(g1, update);
     
     Sig = (eye(3) - K*H)*Sigb;
   end

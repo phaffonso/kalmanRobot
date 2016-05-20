@@ -1,7 +1,7 @@
 %Matches a single detected feature with one or more real features
 function matchArr = featureMatch(detected, features, pose)
   %constants
-  dth = 2*pi/180; dr = 30;
+  dth = 3*pi/180; dr = 30;
   
   d1 = w2r(detected, pose);
   f1 = w2r(features, pose);
