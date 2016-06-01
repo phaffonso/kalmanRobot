@@ -1,15 +1,24 @@
 clear all;
 
 %create group
-http_init
-numLaser = '1';
+http_init;
+realrob = 1;
+if(realrob)
+  disp('using real robot');
+  numLaser = '0';
+  baseurl = 'http://10.1.3.130:4950/';
+else
+  disp('using simulator');
+  numLaser = '0';
+  baseurl = 'http://127.0.0.1:4950/';
+end
 gr.name = 'grupo2';
 gr.resources{1} = '/motion/pose';
 gr.resources{2} = '/motion/vel2';
 gr.resources{3} = ['/perception/laser/' numLaser '/distances?range=-90:90:1'];
-http_delete(['http://127.0.0.1:4950/group/' gr.name]);
-g1 = http_post('http://127.0.0.1:4950/group', gr);
-
+http_delete([baseurl 'group/' gr.name]);
+g1 = http_post([baseurl 'group'], gr);
+g1 = [baseurl 'group/' gr.name];
 %constants
 dt = 2;
 sigx = 5;
@@ -19,7 +28,8 @@ R = diag([sigx^2 sigy^2 sigth^2]);
 sigld = 10;
 siglth = 0.2*pi/180;
 Q1 = diag([sigld^2 siglth^2]);
-diam = 165;
+%diam = 165;
+diam = 180;
 %variables
 Sig = zeros(3);
 
@@ -64,7 +74,7 @@ while 1
   iter = iter + 1
   PoseR
   % Prediction step
-  [ds dth] = calcDeltas(Vels, dt, diam)
+  [ds dth] = calcDeltas(Vels, dt, diam);
   thm = Pose.th + dth/2;
   G = calcG(ds, thm);
   V = calcV(ds, thm, diam);
@@ -75,10 +85,10 @@ while 1
   elapsedTime = toc
   sleep(dt - elapsedTime);
   tic;
+  
   %Update step 
   %read sensor
   data = http_get(g1);
-  disp afterget
   Pose = data{1}.pose;
   Pose.th = mod(Pose.th*pi/180,2*pi);%degrees to rad
   PrevPose = PoseR;
@@ -100,6 +110,7 @@ while 1
     Q = calcQ(Q1, numFeatures);
     K = Sigb * H' * inv(H * Sigb * H' + Q);
     
+    delta = K * Inova
     PoseR = PoseR + K * Inova;
     
     plot(PoseR(1), PoseR(2), 'o');
@@ -110,11 +121,18 @@ while 1
     figure(4);
     plot([iter-1 iter], angleNormalize([PrevPose(3) PoseR(3)]), '-');
 
-    update{1}.pose.x = PoseR(1);
-    update{1}.pose.y = PoseR(2);
-    update{1}.pose.th = PoseR(3)*180/pi;
-    http_post(g1, update);
-    disp afterpost
+    deltaPose = K * Inova;
+    update{1}.pose.x = deltaPose(1);
+    update{1}.pose.y = deltaPose(2);
+    update{1}.pose.th = deltaPose(3)*180/pi;
+    PoseR
+    angledif = abs(PrevPose(3) - PoseR(3))
+    if(angledif  > 0.1)
+      disp rotationDetected
+    else
+      http_post([baseurl 'motion/pose'], update{1}.pose);
+      disp poseUpdated
+    end
     
     Sig = (eye(3) - K*H)*Sigb;
   end
