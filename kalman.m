@@ -3,7 +3,7 @@ clear all;
 %create group
 http_init
 numLaser = '1';
-gr.name = 'grupo1';
+gr.name = 'grupo2';
 gr.resources{1} = '/motion/pose';
 gr.resources{2} = '/motion/vel2';
 gr.resources{3} = ['/perception/laser/' numLaser '/distances?range=-90:90:1'];
@@ -49,7 +49,7 @@ Vels = data{2}.vel2;
 figure(1)
 clf; hold on;
 drawMap;
-plot(Pose.x, Pose.y, 'o');
+plot(PoseR(1), PoseR(2), 'o');
 
 figure(2)
 clf; hold on;
@@ -59,8 +59,10 @@ figure(4)
 clf; hold on;
 iter = 0;
 
+tic;
 while 1
   iter = iter + 1
+  PoseR
   % Prediction step
   [ds dth] = calcDeltas(Vels, dt, diam)
   thm = Pose.th + dth/2;
@@ -70,13 +72,16 @@ while 1
   Sigb = G * Sig * G' + V * Sigd * V' + R;
   %End of prediction step
   
-  sleep(dt);
-  
+  elapsedTime = toc
+  sleep(dt - elapsedTime);
+  tic;
   %Update step 
   %read sensor
   data = http_get(g1);
+  disp afterget
   Pose = data{1}.pose;
   Pose.th = mod(Pose.th*pi/180,2*pi);%degrees to rad
+  PrevPose = PoseR;
   PoseR = [Pose.x; Pose.y; Pose.th];
   Vels = data{2}.vel2;
   
@@ -94,7 +99,7 @@ while 1
     H = calcH(PoseR, real);
     Q = calcQ(Q1, numFeatures);
     K = Sigb * H' * inv(H * Sigb * H' + Q);
-    PrevPose = PoseR;
+    
     PoseR = PoseR + K * Inova;
     
     plot(PoseR(1), PoseR(2), 'o');
@@ -109,6 +114,7 @@ while 1
     update{1}.pose.y = PoseR(2);
     update{1}.pose.th = PoseR(3)*180/pi;
     http_post(g1, update);
+    disp afterpost
     
     Sig = (eye(3) - K*H)*Sigb;
   end
