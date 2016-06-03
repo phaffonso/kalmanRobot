@@ -2,7 +2,7 @@ clear all;
 
 %create group
 http_init;
-realrob = 1;
+realrob = 0;
 kalman_on = 1;
 initial_pose_error = 0;
 if(realrob)
@@ -27,8 +27,8 @@ sigx = 5;
 sigy = 5;
 sigth = 3*pi/180;
 R = diag([sigx^2 sigy^2 sigth^2]);
-sigld = 20;
-siglth = 0.4*pi/180;
+sigld = 5;
+siglth = 0.2*pi/180;
 Q1 = diag([sigld^2 siglth^2]);
 diam = 165;
 
@@ -121,14 +121,6 @@ while (sum(size(key)) == 0)
       deltaPose = K * Inova
       PoseR = PoseR + K * Inova;
     end
-    
-    plot(PoseR(1), PoseR(2), 'o');
-    figure(2);
-    plot([iter-1 iter], [PrevPose(1) PoseR(1)], '-');
-    figure(3);
-    plot([iter-1 iter], [PrevPose(2) PoseR(2)], '-');
-    figure(4);
-    plot([iter-1 iter], angleNormalize([PrevPose(3) PoseR(3)]), '-');
 
     update{1}.pose.x = deltaPose(1);
     update{1}.pose.y = deltaPose(2);
@@ -144,6 +136,14 @@ while (sum(size(key)) == 0)
     
     Sig = (eye(3) - K*H)*Sigb;
   end
+  
+  plot(PoseR(1), PoseR(2), 'o');
+  figure(2);
+  plot([iter-1 iter], [PrevPose(1) PoseR(1)], '-');
+  figure(3);
+  plot([iter-1 iter], [PrevPose(2) PoseR(2)], '-');
+  figure(4);
+  plot([iter-1 iter], angleNormalize([PrevPose(3) PoseR(3)]), '-');
   
   fflush(stdout);
 end
