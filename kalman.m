@@ -3,13 +3,15 @@ clear all;
 %create group
 http_init;
 realrob = 1;
+kalman_on = 1;
+initial_pose_error = 0;
 if(realrob)
   disp('using real robot');
   numLaser = '0';
   baseurl = 'http://10.1.3.130:4950/';
 else
   disp('using simulator');
-  numLaser = '0';
+  numLaser = '1';
   baseurl = 'http://127.0.0.1:4950/';
 end
 gr.name = 'grupo2';
@@ -25,12 +27,13 @@ sigx = 5;
 sigy = 5;
 sigth = 3*pi/180;
 R = diag([sigx^2 sigy^2 sigth^2]);
-sigld = 10;
-siglth = 0.2*pi/180;
+sigld = 20;
+siglth = 0.4*pi/180;
 Q1 = diag([sigld^2 siglth^2]);
-%diam = 165;
-diam = 180;
+diam = 165;
+
 %variables
+deltaPose = zeros(3, 1);
 Sig = zeros(3);
 
 features = [0 0
@@ -47,9 +50,11 @@ features = [0 0
 data = http_get(g1);
 Pose = data{1}.pose;
 Pose.th = mod(Pose.th*pi/180,2*pi);
-%err = 10;
 %PoseR = [Pose.x; Pose.y; Pose.th]
 PoseR = [2340 1600 0];
+if initial_pose_error
+  PoseR = PoseR + [20 20 2*pi/180];
+end
 update{1}.pose.x = PoseR(1);
 update{1}.pose.y = PoseR(2);
 update{1}.pose.th = PoseR(3)*180/pi;
@@ -70,7 +75,9 @@ clf; hold on;
 iter = 0;
 
 tic;
-while 1
+key = [];
+while (sum(size(key)) == 0)
+  key = getKey;
   iter = iter + 1
   PoseR
   % Prediction step
@@ -110,8 +117,10 @@ while 1
     Q = calcQ(Q1, numFeatures);
     K = Sigb * H' * inv(H * Sigb * H' + Q);
     
-    delta = K * Inova
-    PoseR = PoseR + K * Inova;
+    if(kalman_on)
+      deltaPose = K * Inova
+      PoseR = PoseR + K * Inova;
+    end
     
     plot(PoseR(1), PoseR(2), 'o');
     figure(2);
@@ -121,7 +130,6 @@ while 1
     figure(4);
     plot([iter-1 iter], angleNormalize([PrevPose(3) PoseR(3)]), '-');
 
-    deltaPose = K * Inova;
     update{1}.pose.x = deltaPose(1);
     update{1}.pose.y = deltaPose(2);
     update{1}.pose.th = deltaPose(3)*180/pi;

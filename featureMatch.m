@@ -1,13 +1,15 @@
 %Matches a single detected feature with one or more real features
 function matchArr = featureMatch(detected, features, pose)
   %constants
-  dth = 3*pi/180; dr = 30;
+  dth = 5*pi/180;
+  dr = 60;
   
   d1 = w2r(detected, pose);
   f1 = w2r(features, pose);
-  dif = angleNormalize(f1 .- d1, pi);
+  difr = f1(1, :) .- d1(1, :);
+  difth = angleNormalize(f1(2, :) .- d1(2, :));
   %pseudo rectangle matching
-  matchArr = (abs(dif(1, :)) < dr) .* (abs(dif(2, :)) < dth);
+  matchArr = (abs(difr) < dr) .* (abs(difth) < dth);
   %pseudo ellipsis matching
   %matchArr = dif(1, :).^2 ./ dr + dif(2, :).^2 ./ dth < 1;
   

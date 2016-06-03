@@ -134,11 +134,11 @@ Points = [PointsX; PointsY];
 % Plotagem das retas (opcional)
 
 minX = min(0, min(Points(1,:)));
-maxX = max(Points(1,:))+100;
+maxX = max(4800, max(Points(1,:))+100);
 minY =  min(0, min(Points(2,:)));
-maxY = max(Points(2,:))+100;
+maxY = max(3300, max(Points(2,:))+100);
 axis([minX maxX minY maxY]);
-plot(PointsX, PointsY, 'k', 'LineWidth', 3);
+plot(PointsX, PointsY, 'k', 'LineWidth', 1);
 hold on
 % axis equal; 
 grid on;
