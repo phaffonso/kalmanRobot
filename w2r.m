@@ -1,4 +1,4 @@
-%converts x,y world coordinates to r, theta robot centered coordinates
+%converts x,y world coordinates to r, theta robot-centered coordinates
 function rth = w2r(xy, pose)
   p = pose(1:2, 1);
   f0 = xy' - p;

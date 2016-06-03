@@ -1,10 +1,19 @@
+%
+%	Author: Pedro Henrique D. V. Affonso
+%	Course: IA368N - Introduction to Mobile Robotics
+%	Professor Eleri Cardozo
+%	Campinas State University
+%
+%	Description: Kalman Filter implementation for use with a mobile robot with laser range sensors.
+%	Uses the RestThru interface for sensing and actuation
+
 clear all;
 
-%create group
-http_init;
+%global settings
 realrob = 0;
 kalman_on = 1;
 initial_pose_error = 0;
+
 if(realrob)
   disp('using real robot');
   numLaser = '0';
@@ -14,6 +23,9 @@ else
   numLaser = '1';
   baseurl = 'http://127.0.0.1:4950/';
 end
+
+%create group
+http_init;
 gr.name = 'grupo2';
 gr.resources{1} = '/motion/pose';
 gr.resources{2} = '/motion/vel2';
@@ -61,6 +73,7 @@ update{1}.pose.th = PoseR(3)*180/pi;
 http_put(g1, update);
 Vels = data{2}.vel2;
 
+%Graphics setup
 figure(1)
 clf; hold on;
 drawMap;
@@ -79,7 +92,6 @@ key = [];
 while (sum(size(key)) == 0)
   key = getKey;
   iter = iter + 1
-  PoseR
   % Prediction step
   [ds dth] = calcDeltas(Vels, dt, diam);
   thm = Pose.th + dth/2;
@@ -137,6 +149,7 @@ while (sum(size(key)) == 0)
     Sig = (eye(3) - K*H)*Sigb;
   end
   
+  %Draw graphics
   plot(PoseR(1), PoseR(2), 'o');
   figure(2);
   plot([iter-1 iter], [PrevPose(1) PoseR(1)], '-');
